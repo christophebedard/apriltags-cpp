@@ -2,36 +2,24 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-project(APRILTAGS)
+project(apriltags_swatbotics)
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+set(CMAKE_CXX_FLAGS "-Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-compare -frounding-math")
+set(CMAKE_CXX_FLAGS_DEBUG "-O")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
-if(APPLE)
-  include_directories(/opt/local/include) # MacPorts
-  link_directories(/opt/local/lib)
-  find_library(OPENGL_LIBRARY OpenGL)
-else()
-  find_library(OPENGL_LIBRARY GL)
-  find_library(GLU_LIBRARY GLU)
-  set(OPENGL_LIBRARY ${OPENGL_LIBRARY} ${GLU_LIBRARY})
-endif()
+find_package(catkin REQUIRED COMPONENTS 
+  cmake_modules  
+)
 
-find_library(GLUT_LIBRARY glut)
-
-include(FindPkgConfig)
-
-pkg_search_module(OPENCV REQUIRED opencv>=2.3 opencv-2.3.1)
-include_directories(${OPENCV_INCLUDE_DIRS})
-
-pkg_check_modules(CAIRO cairo)
-
-if (${CAIRO_FOUND})
-add_definitions(-DMZ_HAVE_CAIRO)
-endif ()
+catkin_package(
+  DEPENDS OpenCV
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+)
 
 find_package( CGAL QUIET COMPONENTS  )
-
 if (CGAL_FOUND)
   include( ${CGAL_USE_FILE} )
   add_definitions(-DHAVE_CGAL)
@@ -40,19 +28,32 @@ else()
   message("CGAL not found, can not use new quad detector")
 endif()
 
-set(CMAKE_C_FLAGS "-Wall -g")
-set(CMAKE_CXX_FLAGS "-Wall -g")
 
-if (APPLE OR UNIX)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wsign-compare -frounding-math")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-compare -frounding-math")
-endif()
+find_package(OpenCV REQUIRED)
+include_directories(
+  include/${PROJECT_NAME}
+  ${OpenCV_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+)
 
-set(CMAKE_C_FLAGS_DEBUG "-O")
-set(CMAKE_CXX_FLAGS_DEBUG "-O")
+FILE(GLOB_RECURSE apriltags_swatbotics_headers "include/*.h")
 
-set(CMAKE_C_FLAGS_RELEASE "-O2")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+add_library(${PROJECT_NAME} 
+  src/CameraUtil.cpp
+  src/DebugImage.cpp
+  src/Geometry.cpp 
+  src/GrayModel.cpp
+  src/MathUtil.cpp 
+  src/Refine.cpp
+  src/TagDetector.cpp 
+  src/TagFamily.cpp
+  src/TagFamilies.cpp
+  src/UnionFindSimple.cpp
+  ${apriltags_swatbotics_headers}
+)
 
-add_subdirectory(src)
+target_link_libraries(${PROJECT_NAME} 
+  ${OpenCV_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
 

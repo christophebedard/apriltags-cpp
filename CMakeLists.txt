@@ -4,39 +4,20 @@ cmake_minimum_required(VERSION 2.6)
 
 project(apriltags_swatbotics)
 
+set(CMAKE_CXX_FLAGS "-Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-compare -frounding-math")
+set(CMAKE_CXX_FLAGS_DEBUG "-O")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
 find_package(catkin REQUIRED COMPONENTS 
   cmake_modules  
-  )
+)
 
 catkin_package(
   DEPENDS OpenCV
-  INCLUDE_DIRS}
+  INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
 )
-
-set(CMAKE_C_FLAGS "-Wall -g")
-set(CMAKE_CXX_FLAGS "-Wall -g")
-
-if (APPLE OR UNIX)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wsign-compare -frounding-math")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-compare -frounding-math")
-endif()
-
-set(CMAKE_C_FLAGS_DEBUG "-O")
-set(CMAKE_CXX_FLAGS_DEBUG "-O")
-
-set(CMAKE_C_FLAGS_RELEASE "-O2")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
-
-
-set(OPENGL_LIBRARY ${OPENGL_LIBRARY} ${GLU_LIBRARY})
-include(FindPkgConfig)
-
-pkg_check_modules(CAIRO cairo)
-
-if (${CAIRO_FOUND})
-  add_definitions(-DMZ_HAVE_CAIRO)
-endif ()
 
 find_package( CGAL QUIET COMPONENTS  )
 if (CGAL_FOUND)
@@ -47,16 +28,17 @@ else()
   message("CGAL not found, can not use new quad detector")
 endif()
 
-find_library(OPENGL_LIBRARY GL)
-find_library(GLU_LIBRARY GLU)
-find_library(GLUT_LIBRARY glut)
 
 find_package(OpenCV REQUIRED)
 include_directories(
+  include/${PROJECT_NAME}
   ${OpenCV_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME} SHARED
+FILE(GLOB_RECURSE apriltags_swatbotics_headers "include/*.h")
+
+add_library(${PROJECT_NAME} 
   src/CameraUtil.cpp
   src/DebugImage.cpp
   src/Geometry.cpp 
@@ -67,6 +49,11 @@ add_library(${PROJECT_NAME} SHARED
   src/TagFamily.cpp
   src/TagFamilies.cpp
   src/UnionFindSimple.cpp
+  ${apriltags_swatbotics_headers}
 )
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES})
+
+target_link_libraries(${PROJECT_NAME} 
+  ${OpenCV_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
 

@@ -7,7 +7,6 @@
   <license>GPLv3</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-
   <depend>cmake_modules</depend>
 
 </package>
